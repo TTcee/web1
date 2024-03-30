@@ -1,0 +1,65 @@
+<!DOCTYPE html> 
+<html lang="en"> 
+<head> 
+<meta charset="UTF-8"> 
+<meta name="viewport" content="width=device-width, initial-scale=1.0"> 
+<link rel="stylesheet" href="./index.css"> 
+<title>Опитування</title> 
+</head> 
+<body> 
+ 
+<form id="surveyForm"> 
+  <label for="name">1. Вкажіть ім'я:</label> 
+  <input type="text" id="name" name="name" required><br><br> 
+ 
+  <label for="age">2. Скільки вам років:</label> 
+  <input type="number" id="age" name="age" min="1" required><br><br> 
+ 
+  <label for="faculty">3. На якому факультеті ви навчаєтесь:</label> 
+  <select id="faculty" name="faculty" required> 
+    <option value="">Оберіть факультет</option> 
+    <option value="ФЕКТ">ФЕКТ</option> 
+    <option value="ФРАМ">ФРАМ</option> 
+    <option value="ФЕТІ">ФЕТІ</option>
+    <option value="ФЕУМ">ФЕУМ</option>
+    <option value="ФЗАЛ">ФЗАЛ</option>
+    <option value="ФДАМ">ФДАМ</option>
+  </select><br><br> 
+ 
+  <label for="stream">4. Виберіть потік на якому ви навчаєтесь:</label><br> 
+  <input type="radio" id="stream1" name="stream" value="Stream1" required> 
+  <label for="stream1">Потік 1</label><br> 
+  <input type="radio" id="stream2" name="stream" value="Stream2" required> 
+  <label for="stream2">Потік 2</label><br><br> 
+ 
+  <label>5. Вкажіть групу:</label><br> 
+  <input type="checkbox" id="group1" name="group" value="Group1"> 
+  <label for="group1">Група 1</label><br> 
+  <input type="checkbox" id="group2" name="group" value="Group2"> 
+  <label for="group2">Група 2</label><br>
+  <input type="checkbox" id="group3" name="group" value="Group3"> 
+  <label for="group3">Група 3</label><br>
+  <input type="checkbox" id="group4" name="group" value="Group4"> 
+  <label for="group4">Група 4</label><br>
+  <input type="checkbox" id="group5" name="group" value="Group5"> 
+  <label for="group5">Група 5</label><br>
+  <input type="checkbox" id="group6" name="group" value="Group6"> 
+  <label for="group6">Група 6</label><br><br>
+ 
+  <label for="interviewTime">6. Виберіть зручний час для проходження співбесіди:</label><br> 
+  <input type="datetime-local" id="interviewTime" name="interviewTime" required><br><br> 
+ 
+  <label for="averageScore">7. Вкажіть середній бал:</label> 
+  <input type="number" id="averageScore" name="averageScore" min="1" max="5" required><br><br> 
+ 
+  <label>8. Ваша стать:</label><br> 
+  <input type="radio" id="genderMale" name="gender" value="Male" required> 
+  <label for="genderMale">Чоловіча</label><br> 
+  <input type="radio" id="genderFemale" name="gender" value="Female" required> 
+  <label for="genderFemale">Жіноча</label><br><br> 
+  
+  <button type="submit">Надіслати</button> 
+</form> 
+ 
+</body> 
+</html>
