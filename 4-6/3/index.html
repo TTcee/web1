@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Basic Snake HTML Game</title>
+  <meta charset="UTF-8">
+  <style>
+  html, body {
+    height: 100%;
+    margin: 0;
+  }
+
+  body {
+    background: black;
+
+  }
+  canvas {
+    border: 1px solid white;
+    display: flex;
+    align-items: center;
+    margin-left: 40%;
+    justify-content: center;
+  }
+  #leaderboard {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    color: white;
+  }
+  </style>
+</head>
+<body>
+    <img src="./image.svg" alt=",e,e">
+<canvas width="400" height="400" id="game"></canvas>
+<div id="leaderboard"></div>
+<script>
+var canvas = document.getElementById('game');
+var context = canvas.getContext('2d');
+
+var grid = 16;
+var count = 0;
+var score = 0;
+var gameOver = false;
+var playerName = null;
+
+var snake = {
+  x: 160,
+  y: 160,
+
+  dx: grid,
+  dy: 0,
+
+  cells: [],
+
+  maxCells: 4
+};
+var apples = [
+  {x: 320, y: 320, color: 'red'},
+  {x: 160, y: 160, color: 'yellow'},
+  {x: 80, y: 320, color: 'yellow'}
+];
+
+var leaderboard = new Map();
+var leaderboardElement = document.getElementById('leaderboard');
+
+if (localStorage.getItem('leaderboard')) {
+  leaderboard = new Map(JSON.parse(localStorage.getItem('leaderboard')));
+}
+
+function getRandomInt(min, max) {
+  return Math.floor(Math.random() * (max - min)) + min;
+}
+
+function loop() {
+  requestAnimationFrame(loop);
+  if (++count < 4) {
+    return;
+  }
+
+  count = 0;
+  context.clearRect(0,0,canvas.width,canvas.height);
+
+  snake.x += snake.dx;
+  snake.y += snake.dy;
+
+  if (snake.x < 0) {
+    snake.x = canvas.width - grid;
+  }
+  else if (snake.x >= canvas.width) {
+    snake.x = 0;
+  }
+
+  if (snake.y < 0) {
+    snake.y = canvas.height - grid;
+  }
+  else if (snake.y >= canvas.height) {
+    snake.y = 0;
+  }
+
+  snake.cells.unshift({x: snake.x, y: snake.y});
+
+  if (snake.cells.length > snake.maxCells) {
+    snake.cells.pop();
+  }
+
+  apples.forEach(function(apple, index) {
+    context.fillStyle = apple.color;
+    context.fillRect(apple.x, apple.y, grid-1, grid-1);
+  });
+
+  context.fillStyle = 'green';
+  snake.cells.forEach(function(cell, index) {
+
+    context.fillRect(cell.x, cell.y, grid-1, grid-1);
+
+    apples.forEach(function(apple, appleIndex) {
+      if (cell.x === apple.x && cell.y === apple.y) {
+        if (apple.color === 'red') {
+          score += 10;
+          apples[appleIndex].x = getRandomInt(0, 25) * grid;
+          apples[appleIndex].y = getRandomInt(0, 25) * grid;
+          snake.maxCells++;
+          if (score % 20 === 0) {
+            apples.push({
+              x: getRandomInt(0, 25) * grid,
+              y: getRandomInt(0, 25) * grid,
+              color: 'yellow'
+            });
+          }
+        } else if (apple.color === 'yellow') {
+          score -= 5;
+        }
+      }
+    });
+
+    for (var i = index + 1; i < snake.cells.length; i++) {
+      if (cell.x === snake.cells[i].x && cell.y === snake.cells[i].y) {
+        resetGame();
+      }
+    }
+  });
+
+  context.fillStyle = 'white';
+  context.fillText('Score: ' + score, 10, 10);
+
+  if (score >= 20) {
+    gameOver = true;
+    if (playerName !== null && playerName !== '') {
+      leaderboard.set(playerName, score);
+      updateLeaderboard();
+      localStorage.setItem('leaderboard', JSON.stringify(Array.from(leaderboard.entries())));
+    }
+    context.fillStyle = 'white';
+    context.fillText('You Win!', 10, 30);
+    context.fillText('Press "F5" to play again', 10, 50);
+  }
+}
+
+function resetGame() {
+  snake.x = 160;
+  snake.y = 160;
+  snake.cells = [];
+  snake.maxCells = 4;
+  snake.dx = grid;
+  snake.dy = 0;
+
+  apples = [
+    {x: 320, y: 320, color: 'red'},
+    {x: 160, y: 160, color: 'yellow'},
+    {x: 80, y: 320, color: 'yellow'}
+  ];
+
+  score = 0;
+  gameOver = false;
+}
+
+document.addEventListener('keydown', function(e) {
+
+  if (e.which === 37 && snake.dx === 0) {
+    snake.dx = -grid;
+    snake.dy = 0;
+  }
+  else if (e.which === 38 && snake.dy === 0) {
+    snake.dy = -grid;
+    snake.dx = 0;
+  }
+  else if (e.which === 39 && snake.dx === 0) {
+    snake.dx = grid;
+    snake.dy = 0;
+  }
+  else if (e.which === 40 && snake.dy === 0) {
+    snake.dy = grid;
+    snake.dx = 0;
+  }
+});
+
+document.addEventListener('keydown', function(e) {
+  if (e.which === 13 && !gameOver) { // Enter key
+    requestAnimationFrame(loop);
+  }
+});
+
+document.addEventListener('keydown', function(e) {
+  if (gameOver && e.which === 82) { // "R" key
+    resetGame();
+    requestAnimationFrame(loop);
+  }
+});
+
+playerName = prompt("Введіть своє ім'я а потім натисніть Enter:");
+if (playerName !== null && playerName !== '') {
+  leaderboard.set(playerName, 0);
+  updateLeaderboard();
+}
+
+function updateLeaderboard() {
+  leaderboardElement.innerHTML = ''; 
+  var sortedLeaderboard = Array.from(leaderboard.entries()).sort((a, b) => b[1] - a[1]); 
+  var topThree = sortedLeaderboard.slice(0, 3); 
+  topThree.forEach(function(entry, index) {
+    leaderboardElement.innerHTML += (index + 1) + '. ' + entry[0] + ': ' + entry[1] + '<br>'; 
+  });
+}
+
+</script>
+</body>
+</html>
