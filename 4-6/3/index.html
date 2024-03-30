@@ -206,7 +206,20 @@ document.addEventListener('keydown', function(e) {
   }
 });
 
+playerName = prompt("Введіть своє ім'я а потім натисніть Enter:");
+if (playerName !== null && playerName !== '') {
+  leaderboard.set(playerName, 0);
+  updateLeaderboard();
+}
 
+function updateLeaderboard() {
+  leaderboardElement.innerHTML = ''; 
+  var sortedLeaderboard = Array.from(leaderboard.entries()).sort((a, b) => b[1] - a[1]); 
+  var topThree = sortedLeaderboard.slice(0, 3); 
+  topThree.forEach(function(entry, index) {
+    leaderboardElement.innerHTML += (index + 1) + '. ' + entry[0] + ': ' + entry[1] + '<br>'; 
+  });
+}
 
 </script>
 </body>
