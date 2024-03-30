@@ -91,6 +91,65 @@
     }
   ];
 
+  const quizContainer = document.getElementById('quizContainer');
+  const resultContainer = document.getElementById('resultContainer');
+  const submitButton = document.getElementById('submitButton');
+
+  function buildQuiz() {
+    questions.forEach((question, index) => {
+      const questionContainer = document.createElement('div');
+      questionContainer.classList.add('question-container');
+
+      const questionElement = document.createElement('div');
+      questionElement.classList.add('question');
+      questionElement.textContent = `Питання ${index + 1}: ${question.question}`;
+
+      const answerContainer = document.createElement('div');
+      answerContainer.classList.add('answers');
+
+      question.answers.forEach((answer, ansIndex) => {
+        const answerElement = document.createElement('div');
+        answerElement.classList.add('answer');
+        const input = document.createElement('input');
+        input.type = 'checkbox';
+        input.name = `question${index}`;
+        input.value = answer.correct;
+        const label = document.createElement('label');
+        label.textContent = answer.text;
+        answerElement.appendChild(input);
+        answerElement.appendChild(label);
+        answerContainer.appendChild(answerElement);
+      });
+
+      questionContainer.appendChild(questionElement);
+      questionContainer.appendChild(answerContainer);
+      quizContainer.appendChild(questionContainer);
+    });
+  }
+
+  function showResults() {
+    const answerContainers = quizContainer.querySelectorAll('.answers');
+    let correctAnswers = 0;
+    questions.forEach((question, index) => {
+      const answerContainer = answerContainers[index];
+      const selector = `input[name=question${index}]:checked`;
+      const userAnswers = Array.from(answerContainer.querySelectorAll(selector))
+        .map(input => input.value === 'true');
+       
+      if (userAnswers.includes(true)) {
+        correctAnswers++;
+      }  
+      
+    });
+
+    const score = Math.round((correctAnswers / questions.length) * 100);
+    resultContainer.innerHTML = `Ваш результат: ${score}% правильних відповідей`;
+    resultContainer.classList.add('result');
+  }
+
+  buildQuiz();
+
+  submitButton.addEventListener('click', showResults);
 </script>
 
 </body>
