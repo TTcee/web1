@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
+  <body> 
   <title>Basic Snake HTML Game</title>
   <meta charset="UTF-8">
   <style>
@@ -11,67 +12,55 @@
 
   body {
     background: black;
-
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
   canvas {
     border: 1px solid white;
-    display: flex;
-    align-items: center;
-    margin-left: 40%;
-    justify-content: center;
-  }
-  #leaderboard {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    color: white;
   }
   </style>
 </head>
 <body>
-    <img src="./image.svg" alt=",e,e">
+  <img src="./image.svg" alt=",e,e">
 <canvas width="400" height="400" id="game"></canvas>
-<div id="leaderboard"></div>
 <script>
 var canvas = document.getElementById('game');
 var context = canvas.getContext('2d');
 
 var grid = 16;
 var count = 0;
-var score = 0;
-var gameOver = false;
-var playerName = null;
 
 var snake = {
   x: 160,
   y: 160,
 
+  // snake velocity. moves one grid length every frame in either the x or y direction
   dx: grid,
   dy: 0,
 
+  // keep track of all grids the snake body occupies
   cells: [],
 
+  // length of the snake. grows when eating an apple
   maxCells: 4
 };
-var apples = [
-  {x: 320, y: 320, color: 'red'},
-  {x: 160, y: 160, color: 'yellow'},
-  {x: 80, y: 320, color: 'yellow'}
-];
+var apple = {
+  x: 320,
+  y: 320
+};
 
-var leaderboard = new Map();
-var leaderboardElement = document.getElementById('leaderboard');
-
-if (localStorage.getItem('leaderboard')) {
-  leaderboard = new Map(JSON.parse(localStorage.getItem('leaderboard')));
-}
-
+// get random whole numbers in a specific range
+// @see https://stackoverflow.com/a/1527820/2124254
 function getRandomInt(min, max) {
   return Math.floor(Math.random() * (max - min)) + min;
 }
 
+// game loop
 function loop() {
   requestAnimationFrame(loop);
+
+  // slow game loop to 15 fps instead of 60 (60/15 = 4)
   if (++count < 4) {
     return;
   }
@@ -79,9 +68,11 @@ function loop() {
   count = 0;
   context.clearRect(0,0,canvas.width,canvas.height);
 
+  // move snake by it's velocity
   snake.x += snake.dx;
   snake.y += snake.dy;
 
+  // wrap snake position horizontally on edge of screen
   if (snake.x < 0) {
     snake.x = canvas.width - grid;
   }
@@ -89,6 +80,7 @@ function loop() {
     snake.x = 0;
   }
 
+  // wrap snake position vertically on edge of screen
   if (snake.y < 0) {
     snake.y = canvas.height - grid;
   }
@@ -96,131 +88,84 @@ function loop() {
     snake.y = 0;
   }
 
+  // keep track of where snake has been. front of the array is always the head
   snake.cells.unshift({x: snake.x, y: snake.y});
 
+  // remove cells as we move away from them
   if (snake.cells.length > snake.maxCells) {
     snake.cells.pop();
   }
 
-  apples.forEach(function(apple, index) {
-    context.fillStyle = apple.color;
-    context.fillRect(apple.x, apple.y, grid-1, grid-1);
-  });
+  // draw apple
+  context.fillStyle = 'red';
+  context.fillRect(apple.x, apple.y, grid-1, grid-1);
 
+  // draw snake one cell at a time
   context.fillStyle = 'green';
   snake.cells.forEach(function(cell, index) {
 
+    // drawing 1 px smaller than the grid creates a grid effect in the snake body so you can see how long it is
     context.fillRect(cell.x, cell.y, grid-1, grid-1);
 
-    apples.forEach(function(apple, appleIndex) {
-      if (cell.x === apple.x && cell.y === apple.y) {
-        if (apple.color === 'red') {
-          score += 10;
-          apples[appleIndex].x = getRandomInt(0, 25) * grid;
-          apples[appleIndex].y = getRandomInt(0, 25) * grid;
-          snake.maxCells++;
-          if (score % 20 === 0) {
-            apples.push({
-              x: getRandomInt(0, 25) * grid,
-              y: getRandomInt(0, 25) * grid,
-              color: 'yellow'
-            });
-          }
-        } else if (apple.color === 'yellow') {
-          score -= 5;
-        }
-      }
-    });
+    // snake ate apple
+    if (cell.x === apple.x && cell.y === apple.y) {
+      snake.maxCells++;
 
+      // canvas is 400x400 which is 25x25 grids
+      apple.x = getRandomInt(0, 25) * grid;
+      apple.y = getRandomInt(0, 25) * grid;
+    }
+
+    // check collision with all cells after this one (modified bubble sort)
     for (var i = index + 1; i < snake.cells.length; i++) {
+
+      // snake occupies same space as a body part. reset game
       if (cell.x === snake.cells[i].x && cell.y === snake.cells[i].y) {
-        resetGame();
+        snake.x = 160;
+        snake.y = 160;
+        snake.cells = [];
+        snake.maxCells = 4;
+        snake.dx = grid;
+        snake.dy = 0;
+
+        apple.x = getRandomInt(0, 25) * grid;
+        apple.y = getRandomInt(0, 25) * grid;
       }
     }
   });
-
-  context.fillStyle = 'white';
-  context.fillText('Score: ' + score, 10, 10);
-
-  if (score >= 20) {
-    gameOver = true;
-    if (playerName !== null && playerName !== '') {
-      leaderboard.set(playerName, score);
-      updateLeaderboard();
-      localStorage.setItem('leaderboard', JSON.stringify(Array.from(leaderboard.entries())));
-    }
-    context.fillStyle = 'white';
-    context.fillText('You Win!', 10, 30);
-    context.fillText('Press "F5" to play again', 10, 50);
-  }
 }
 
-function resetGame() {
-  snake.x = 160;
-  snake.y = 160;
-  snake.cells = [];
-  snake.maxCells = 4;
-  snake.dx = grid;
-  snake.dy = 0;
-
-  apples = [
-    {x: 320, y: 320, color: 'red'},
-    {x: 160, y: 160, color: 'yellow'},
-    {x: 80, y: 320, color: 'yellow'}
-  ];
-
-  score = 0;
-  gameOver = false;
-}
-
+// listen to keyboard events to move the snake
 document.addEventListener('keydown', function(e) {
+  // prevent snake from backtracking on itself by checking that it's
+  // not already moving on the same axis (pressing left while moving
+  // left won't do anything, and pressing right while moving left
+  // shouldn't let you collide with your own body)
 
+  // left arrow key
   if (e.which === 37 && snake.dx === 0) {
     snake.dx = -grid;
     snake.dy = 0;
   }
+  // up arrow key
   else if (e.which === 38 && snake.dy === 0) {
     snake.dy = -grid;
     snake.dx = 0;
   }
+  // right arrow key
   else if (e.which === 39 && snake.dx === 0) {
     snake.dx = grid;
     snake.dy = 0;
   }
+  // down arrow key
   else if (e.which === 40 && snake.dy === 0) {
     snake.dy = grid;
     snake.dx = 0;
   }
 });
 
-document.addEventListener('keydown', function(e) {
-  if (e.which === 13 && !gameOver) { // Enter key
-    requestAnimationFrame(loop);
-  }
-});
-
-document.addEventListener('keydown', function(e) {
-  if (gameOver && e.which === 82) { // "R" key
-    resetGame();
-    requestAnimationFrame(loop);
-  }
-});
-
-playerName = prompt("Введіть своє ім'я а потім натисніть Enter:");
-if (playerName !== null && playerName !== '') {
-  leaderboard.set(playerName, 0);
-  updateLeaderboard();
-}
-
-function updateLeaderboard() {
-  leaderboardElement.innerHTML = ''; 
-  var sortedLeaderboard = Array.from(leaderboard.entries()).sort((a, b) => b[1] - a[1]); 
-  var topThree = sortedLeaderboard.slice(0, 3); 
-  topThree.forEach(function(entry, index) {
-    leaderboardElement.innerHTML += (index + 1) + '. ' + entry[0] + ': ' + entry[1] + '<br>'; 
-  });
-}
-
+// start the game
+requestAnimationFrame(loop);
 </script>
 </body>
 </html>
