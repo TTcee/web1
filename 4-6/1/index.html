@@ -61,5 +61,30 @@
   <button type="submit">Надіслати</button> 
 </form> 
  
+<script> 
+const form = document.getElementById('surveyForm'); 
+ 
+form.addEventListener('submit', function(event) { 
+  event.preventDefault(); 
+ 
+  const formData = new FormData(form); 
+  const formObject = {}; 
+  formData.forEach((value, key) => formObject[key] = value); 
+ 
+  const participants = JSON.parse(localStorage.getItem('participants')) || []; 
+  participants.push(formObject); 
+  localStorage.setItem('participants', JSON.stringify(participants)); 
+  alert('Дякуємо за вашу участь у опитуванні!');
+  form.reset(); 
+ 
+  console.log(participants.filter(participant => participant.faculty === 'ФЕКТ')); 
+ 
+  console.log(participants.filter(participant => participant.age >= 18 && participant.age <= 20)); 
+
+  console.log(participants.filter(participant => participant.averageScore >= 2 && participant.averageScore <= 3)); 
+}); 
+ 
+</script> 
+ 
 </body> 
 </html>
